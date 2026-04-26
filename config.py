@@ -1,16 +1,13 @@
 """
-Configuration for P2-ETF-PINN-ENGINE.
+Configuration for P2-ETF-PINN-ENGINE (repurposed).
 """
-
 import os
 from datetime import datetime
 
-# --- Hugging Face Repositories ---
 HF_DATA_REPO = "P2SAMAPA/fi-etf-macro-signal-master-data"
 HF_DATA_FILE = "master_data.parquet"
-HF_OUTPUT_REPO = "P2SAMAPA/p2-etf-pinn-engine-results"
+HF_OUTPUT_REPO = "P2SAMAPA/p2-etf-pinn-results"
 
-# --- Universe Definitions ---
 FI_COMMODITIES_TICKERS = ["TLT", "VCIT", "LQD", "HYG", "VNQ", "GLD", "SLV"]
 EQUITY_SECTORS_TICKERS = [
     "SPY", "QQQ", "XLK", "XLF", "XLE", "XLV",
@@ -25,24 +22,23 @@ UNIVERSES = {
     "COMBINED": ALL_TICKERS
 }
 
-# --- PINN Parameters ---
-HIDDEN_LAYERS = [64, 64, 32]          # Neural network architecture
-EPOCHS = 200                          # Training epochs
+MACRO_COLS = ["VIX", "DXY", "T10Y2Y", "TBILL_3M"]
+
+# Neural network
+HIDDEN_DIMS = [128, 64]
+EPOCHS = 200
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
-PHYSICS_WEIGHT = 0.1                  # Weight for PDE loss term
+FACTOR_LAMBDA = 0.2                # strength of economic constraint
 RANDOM_SEED = 42
-MIN_OBSERVATIONS = 252                # Minimum data required
 
-# --- Data Windows ---
-LOOKBACK_WINDOW = 252                 # Days of historical data used per ETF
-FORECAST_HORIZON = 1                  # Predict next day
+# Data
+DAILY_LOOKBACK = 504
+GLOBAL_TRAIN_START = "2008-01-01"
+MIN_OBSERVATIONS = 252
 
-# --- Shrinking Windows ---
+# Shrinking
 SHRINKING_WINDOW_START_YEARS = list(range(2010, 2025))
 
-# --- Date Handling ---
-TODAY = datetime.now().strftime("%Y-%m-%d")
-
-# --- Optional: Hugging Face Token ---
+TODAY = datetime.utcnow().strftime("%Y-%m-%d")
 HF_TOKEN = os.environ.get("HF_TOKEN", None)
