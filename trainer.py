@@ -16,15 +16,16 @@ def run_mode(returns, macro, tickers, mode, device, anchor):
     return {"top_picks": [{"ticker": t, "score": scores[t]} for t in top],
             "all_scores": scores}
 
-def shrinking(data, returns, macro, tickers, device, anchor):
+def shrinking(returns, macro, tickers, device, anchor):
+    """Use returns directly (DatetimeIndex) for date filtering."""
     windows = []
     for yr in config.SHRINKING_WINDOW_START_YEARS:
         sd = pd.Timestamp(f"{yr}-01-01")
         ed = pd.Timestamp("2024-12-31")
-        mask = (data['Date'] >= sd) & (data['Date'] <= ed)
-        r = returns.loc[mask]
-        m = macro.loc[r.index]
+        # filter returns by its own index
+        r = returns[(returns.index >= sd) & (returns.index <= ed)]
         if len(r) < config.MIN_OBSERVATIONS: continue
+        m = macro.loc[r.index]
         X, y, _ = data_manager.build_sequences(r, m)
         if len(X) < config.MIN_OBSERVATIONS: continue
         model = train_model(X, y, tickers, config.EPOCHS, config.LEARNING_RATE,
@@ -61,7 +62,7 @@ def main():
         g = run_mode(ret, m, tks, 'global', dev, anchor)
         if g: u['global'] = g
         # Shrinking
-        s = shrinking(df, ret, m, tks, dev, anchor)
+        s = shrinking(ret, m, tks, dev, anchor)
         if s: u['shrinking'] = s
         results[uni] = u
     push_results.push_daily_result({"run_date": config.TODAY, "universes": results})
