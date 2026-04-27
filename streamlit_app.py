@@ -39,7 +39,8 @@ def load_latest_results():
         st.error(f"Failed to load data: {e}")
         return None
 
-def score_badge(s):
+def score_html(s):
+    """Return HTML span for hero card."""
     try:
         s = float(s)
     except:
@@ -47,6 +48,14 @@ def score_badge(s):
     if s >= 0:
         return f'<span class="score-positive">+{s*100:.2f}%</span>'
     return f'<span class="score-negative">{s*100:.2f}%</span>'
+
+def score_text(s):
+    """Return plain string for table cells."""
+    try:
+        s = float(s)
+    except:
+        return f'{s}'
+    return f"{s*100:+.2f}%"
 
 def render_mode_tab(mode_data, mode_name):
     if not mode_data or 'top_picks' not in mode_data:
@@ -64,20 +73,18 @@ def render_mode_tab(mode_data, mode_name):
     <div class="hero-card">
         <div style="font-size: 1.2rem; opacity: 0.8;">🔬 {mode_name} TOP PICK</div>
         <div class="hero-ticker">{ticker}</div>
-        <div style="font-size: 1.5rem;">Predicted Return: {score_badge(score)}</div>
+        <div style="font-size: 1.5rem;">Predicted Return: {score_html(score)}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Top 3 table
     st.markdown("### Top 3 Picks")
-    rows = [{"Ticker": p['ticker'], "Predicted Return": score_badge(p['score'])} for p in top]
+    rows = [{"Ticker": p['ticker'], "Predicted Return": score_text(p['score'])} for p in top]
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-    # All ETFs
     all_scores = mode_data.get('all_scores', {})
     if all_scores:
         st.markdown("### All ETFs")
-        all_rows = [{"Ticker": t, "Predicted Return": score_badge(s)} for t, s in all_scores.items()]
+        all_rows = [{"Ticker": t, "Predicted Return": score_text(s)} for t, s in all_scores.items()]
         df_all = pd.DataFrame(all_rows).sort_values("Predicted Return", ascending=False)
         st.dataframe(df_all, use_container_width=True, hide_index=True)
 
@@ -98,7 +105,7 @@ def render_shrinking_tab(shrinking_data):
             rows.append({
                 "Window": f"{w['window_start']}-{w['window_end']}",
                 "ETF": w['ticker'],
-                "Score": score_badge(w.get('score', 0))
+                "Score": score_text(w.get('score', 0))
             })
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
