@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import config
 
 class EconomicNet(nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dims):
@@ -23,7 +24,6 @@ class EconomicNet(nn.Module):
 def factor_loss(pred, target, anchor_idx=None, lambda_factor=0.2):
     mse = nn.MSELoss()(pred, target)
     if anchor_idx is not None:
-        # economic constraint: mean prediction ≈ target mean + anchor alignment
         anchor_pred = pred[:, anchor_idx]
         anchor_targ = target[:, anchor_idx]
         constr = nn.MSELoss()(anchor_pred, anchor_targ)
